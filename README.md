@@ -86,7 +86,7 @@ usm:
 - hosts: localhost
   gather_facts: false
   collections:
-    - swisscom.vmware_usm
+    - dholzer.vmware_usm
   
   roles:
     - usm_deploy
