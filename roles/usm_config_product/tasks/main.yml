@@ -1,0 +1,4 @@
+---
+# tasks file for usm_config_product
+- include_tasks: config_product.yml
+  loop: "{{ usm.product }}"

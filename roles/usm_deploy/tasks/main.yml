@@ -1,0 +1,43 @@
+---
+# tasks file for usm_deploy
+- name: Deploy "{{ usm.hostname }}"
+  shell: |
+    ovftool \
+    --noSSLVerify \
+    --acceptAllEulas \
+    --X:enableHiddenProperties \
+    --datastore='{{ usm.deployment.datastore }}' \
+    --allowAllExtraConfig  \
+    --network="{{ usm.deployment.network }}" \
+    --name="{{ usm.hostname }}" \
+    --vmFolder="{{ usm.deployment.folder }}" \
+    --diskMode=thin \
+    --prop:varoot-password='{{ usm.root_password }}' \
+    --prop:vausagemeter-password='{{ usm.usagemeter_password }}' \
+    --prop:vaumauditor-password='{{ usm.umauditor_password }}'  \
+    --prop:gateway={{ usm.gateway }}  \
+    --prop:domain={{ usm.domain }}  \
+    --prop:searchpath={{ usm.searchpath }}  \
+    --prop:DNS={{ usm.dns }}  \
+    --prop:ip0={{ usm.ip }}  \
+    --prop:hostname={{ usm.hostname }}  \
+    --prop:netmask0={{ usm.netmask_cidr }} \
+    --prop:retain-usage-data={{ usm.retain_usage_data | default('') }} \
+    --prop:offline-mode={{ usm.offline_mode | default('') }} \
+    --prop:offline-token={{ usm.offline_token | default('') }} \
+    --powerOn \
+    "{{ usm.deployment.ova }}" \ 
+    vi://{{ usm.deployment.vce.username }}:{{ usm.deployment.vce.password }}@{{ usm.deployment.vce.hostname }}/{{ usm.deployment.datacenter }}/host/{{ usm.deployment.cluster }}
+  ignore_errors: true
+
+- name: Connect to "{{ usm.hostname }}" until status 200
+  uri:
+    url: https://{{ usm.hostname }}
+    method: GET
+    status_code: 200
+    validate_certs: no
+    return_content: yes
+  until: usm_result.status == 200 and usm.check_pattern in usm_result.content
+  retries: 100
+  delay: 15
+  register: usm_result

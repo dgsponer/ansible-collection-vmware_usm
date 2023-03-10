@@ -1,0 +1,7 @@
+---
+# tasks file for usm_config_product
+- import_tasks: product_general.yml
+  when: item.productType != 'vCenter'
+
+- import_tasks: product_vce.yml
+  when: 'item.productType == "vCenter"'

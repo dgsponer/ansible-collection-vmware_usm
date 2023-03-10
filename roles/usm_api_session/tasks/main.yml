@@ -1,0 +1,16 @@
+---
+# tasks file for usm_api_session
+- name: Connect to "{{ usm.hostname }}" and get a token
+  uri:
+    url: https://{{ usm.hostname }}/api/v1/login
+    method: POST
+    status_code: 202
+    validate_certs: no
+    return_content: true
+    headers:
+      Accept: application/json
+    body_format: json
+    body:
+      "user": "usagemeter"
+      "password": "{{ usm.usagemeter_password }}"
+  register: usm_session

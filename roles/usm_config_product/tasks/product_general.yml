@@ -1,0 +1,76 @@
+---
+# tasks file for usm_config_product
+- name: Get Product "{{ item.host }}" on "{{ usm.hostname }}"
+  uri:
+    url: https://{{ usm.hostname }}/api/v1/product?productType={{ item.productType | urlencode }}
+    method: GET
+    status_code: 200
+    validate_certs: no
+    return_content: true
+    headers:
+      Accept: application/json
+      sessionid: "{{ usm_session.json.sessionid }}"
+  register: product
+  ignore_errors: true
+
+- name: Add product "{{ item.host }}" on "{{ usm.hostname }}"
+  uri:
+    url: https://{{ usm.hostname }}/api/v1/product
+    method: POST
+    status_code: 202
+    validate_certs: no
+    return_content: true
+    headers:
+      Accept: application/json
+      sessionid: "{{ usm_session.json.sessionid }}"
+    body_format: json
+    body:
+      "productType": "{{ item.productType }}"
+      "host": "{{ item.host }}"
+      "port": 443 #"{{ item.port }}"
+      "user": "{{ item.user }}"
+      "password": "{{ item.password }}"
+  ignore_errors: true
+  register: result
+  when: item.state == 'present' and item.host not in (product | json_query('json[*].host'))
+
+- import_tasks: accept_certificate.yml
+  when: item.state == 'present' and item.host not in (product | json_query('json[*].host'))
+
+- name: Update product "{{ item.host }}" on "{{ usm.hostname }}"
+  uri:
+    url: https://{{ usm.hostname }}/api/v1/product
+    method: PUT
+    status_code: 202
+    validate_certs: no
+    return_content: true
+    headers:
+      Accept: application/json
+      sessionid: "{{ usm_session.json.sessionid }}"
+    body_format: json
+    body:
+      "id": "{{ (product | json_query('json[*].id')).0 }}"
+      "productType": "{{ item.productType }}"
+      "host": "{{ item.host }}"
+      "port": 443 #"{{ item.port }}"
+      "user": "{{ item.user }}"
+      "password": "{{ item.password }}"
+  ignore_errors: true
+  register: result
+  when: item.state == 'present' and item.host in (product | json_query('json[*].host'))
+
+- import_tasks: accept_certificate.yml
+  when: item.state == 'present' and item.host in (product | json_query('json[*].host'))
+
+- name: Remove product "{{ item.host }}" on "{{ usm.hostname }}"
+  uri:
+    url: https://{{ usm.hostname }}/api/v1/product?productType={{ item.productType | urlencode }}&forget=true&id={{ (product | json_query('json[*].id')).0 }}
+    method: DELETE
+    status_code: 202
+    validate_certs: no
+    return_content: true
+    headers:
+      Accept: application/json
+      sessionid: "{{ usm_session.json.sessionid }}"
+  ignore_errors: true
+  when: item.state == 'absent' and item.host in (product | json_query('json[*].host'))

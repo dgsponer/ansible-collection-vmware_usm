@@ -1,0 +1,31 @@
+# - name: Connect to "{{ usm.hostname }}" and get product "{{ result.json.host }}"
+#   uri:
+#     url: https://{{ usm.hostname }}/api/v1/product?id={{ result.json.id }}&productType={{ result.json.productType }}
+#     method: GET
+#     status_code: 200
+#     validate_certs: no
+#     return_content: true
+#     headers:
+#       Accept: application/json
+#       sessionid: "{{ usm_session.json.sessionid }}"
+#   register: result
+#   when: item.state == 'present'
+
+- name: Accept certificates for "{{ result.json.host }}"
+  uri:
+    url: https://{{ usm.hostname }}/api/v1/accept_certificate
+    method: PUT
+    status_code: 202
+    validate_certs: no
+    return_content: true
+    headers:
+      Accept: application/json
+      sessionid: "{{ usm_session.json.sessionid }}"
+    body_format: json
+    body:
+      "certificateId": "{{ result.json.host }}:{{ result.json.port }}"
+      "accepted": true
+      "productType": "{{ result.json.productType }}"
+      "productId": "{{ result.json.id }}"
+  register: result_accept_certificates
+  when: item.state == 'present' and "Please accept certificate" in result.json.status.text
