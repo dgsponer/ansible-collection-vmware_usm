@@ -70,14 +70,14 @@ usm:
       productType: 'VCAV'
       port: 443
       user: "root"
-      password: "Swisscom.01"
+      password: "VMwareVCDA1."
       state: present
 
 #    - host: "psrv01ops001.vcloud24.net"
 #      productType: 'VROPS'
 #      port: 443
 #      user: "root"
-#      password: "Swisscom.01"
+#      password: "VMwareOPS1."
 #      state: present
   ```
 # site.yml
